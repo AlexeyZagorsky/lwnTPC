@@ -213,17 +213,29 @@ class htmlDocument extends DOMDocument {
      * @return void
      */
 	public function convertEncoding($destCharset) {
-        $data = $this->saveHTML();
-        $data = iconv($this->encoding, $destCharset, $data);
-        // todo: implement more reliable way of the meta charset tag update.
-        // Need to locate this meta tag, detecting its start and end positions in $data, then extract this tag in a string.
-        // Then update charset in that string and update $data.
-        $data = str_ireplace('charset=' . $this->encoding, 'charset=' . $destCharset, $data);
-
-        $this->encoding = $destCharset;
-		$this->htmlCharset = $destCharset;
-		$this->setCharsetTag($destCharset);
-        $this->loadHTML($data);
+	    if ( (strcasecmp($this->encoding, $destCharset) != 0) && (!$this->isNew()) ) {
+            $data = $this->saveHTML();
+            $data = iconv($this->encoding, $destCharset, $data);
+            // Replace the charset value in the <meta charset> tag
+            $head_start = stripos($data, '<head>');
+            $head_end = stripos($data, '</head>');
+            $sp = stripos($data, '<meta ', $head_start + 6);
+            $ep = $sp;
+            $metaTag = '';
+            while ($sp < $head_end || $sp === false) {
+                $ep = strpos($data, '>', $sp);
+                $metaTag = substr($data, $sp, $ep - $sp + 1);
+                if (stripos($metaTag, 'charset')) {
+                    $metaTag = str_ireplace('charset=' . $this->encoding, 'charset=' . $destCharset, $metaTag);
+                    break;
+                }
+                $sp = stripos($data, '<meta ', $ep + 1);
+            }
+            $data = substr($data, 0, $sp) . $metaTag . substr($data, $ep + 1, strlen($data) - $ep - 1);
+            $this->encoding = $destCharset;
+            $this->htmlCharset = $destCharset;
+            $this->loadHTML($data);
+        }
 	}
 
     /**

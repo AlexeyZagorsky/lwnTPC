@@ -45,8 +45,6 @@ class htmlTPC {
         $this->htmlDoc->setHtmlVersion(5);
         $this->htmlDoc->convertEncoding($destCharset);
         $this->normalize();
-        //$this->htmlDoc->setDocType();
-        //$this->htmlDoc->setCharsetTag();
 	}
 
     /**
