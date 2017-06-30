@@ -29,6 +29,8 @@ class htmlDocument extends DOMDocument {
 	private $htmlCharset;
     /** @var int $htmlVersion       HTML version of the document according to doctype tag. */
 	private $htmlVersion;
+    /** @var htmlAnalysis $analysis HTML analysis object */
+	private $analysis;
 	/** @var bool $analysisDone     True if the HTML document has been analyzed by analyze() method. */
 	private $analysisDone;
 	/** @var bool $doctypeTagExists True if a doctype tag physically exists in the HTML document. */
@@ -51,6 +53,7 @@ class htmlDocument extends DOMDocument {
         $this->encoding = $encoding;
         $this->substituteEntities = false;
         $this->formatOutput = true;
+        $this->analysis = null;
         $this->analysisDone = false;
     }
 
@@ -89,7 +92,7 @@ class htmlDocument extends DOMDocument {
      */
     public function setHtmlVersion($newVersion) {
         if ($newVersion >= 5) {
-            $this->htmlVersion = $newVersion;
+            $this->htmlVersion = 5;
         } else {
             $this->htmlVersion = 4;
         }
@@ -127,9 +130,9 @@ class htmlDocument extends DOMDocument {
     /**
      * Locate <meta charset> node in the HTML document.
      *
-     * @return DOMNode|null      Meta tag object or null if it was not found.
+     * @return DOMElement|null      Meta tag object or null if it was not found.
      */
-	private function locateCharsetTag() {
+	private function locateCharsetTag(): DOMElement {
         $charsetTag = null;
         $metaTags = $this->getElementsByTagName('meta');
         for ($i = 0; $i < $metaTags->length; $i++) {
@@ -149,7 +152,7 @@ class htmlDocument extends DOMDocument {
      */
     private function createCharsetTag() {
         $charsetTag = $this->createElement('meta');
-        if ($this->htmlVersion < 5) {
+        if ($this->getHtmlVersion() < 5) {
             $charsetTag->setAttribute('http-equiv', 'Content-Type');
             $charsetTag->setAttribute('content', 'text/html; charset=' . $this->encoding);
         } else {
@@ -206,6 +209,53 @@ class htmlDocument extends DOMDocument {
 	}
 
     /**
+     * Return the tag content. If there are several tags with the specified name,
+     * only the first tag content is returned.
+     *
+     * @param $tagName string       Tag name.
+     *
+     * @return string       Tag content. Can be empty if there is no content.
+     */
+	public function getTagContent($tagName) {
+	    $content = '';
+	    $Tags = $this->getElementsByTagName($tagName);
+	    if ($Tags) {
+            $tag = $Tags->item(0);
+            $content = $tag->nodeValue;
+        }
+        return $content;
+    }
+
+    /**
+     * Return external CSS file name(s) linked to the HTML document.
+     *
+     * @return array|string     CSS file name, if only one CSS is linked to the document;
+     *                          array of CSS file names, if there are several CSS links found;
+     *                          empty string, if no external CSS links found.
+     */
+    public function getExtCSS() {
+	    $cssFileArray = array();
+	    $k = 0;
+	    $Tags = $this->getElementsByTagName('link');
+	    for ($i = 0; $i < $Tags->length; $i++) {
+	        $linkTag = $Tags->item($i);
+	        if ($linkTag->getAttribute('rel') == 'stylesheet') {
+	            $cssFileArray[$k] = $linkTag->getAttribute('href');
+	            $k++;
+            }
+        }
+        $retValue = '';
+        if ($k > 0) {
+	        if ($k == 1) {
+	            $retValue = $cssFileArray[0];
+            } else {
+	            $retValue = $cssFileArray;
+            }
+        }
+        return $retValue;
+    }
+
+    /**
      * Convert HTML file encoding to specified charset. The source encoding is defined by the $encoding property.
      *
      * @param string $destCharset       Destination charset.
@@ -250,14 +300,14 @@ class htmlDocument extends DOMDocument {
             $data = file_get_contents($this->srcFileName);
             if ($data !== false) {
                 // Detect HTML version. We cannot use htmlDoctype because it has not been created yet.
-                $this->htmlVersion = 4; // supposed by default
+                $this->setHtmlVersion(4); // supposed by default
                 if (stripos($data, '<!DOCTYPE html>') !== false) {
-                    $this->htmlVersion = 5;
+                    $this->setHtmlVersion(5);
                 }
                 // Detect meta charset tag
                 $head_pos = stripos($data, '<head>');
                 $metaTag = '';
-                if ($this->htmlVersion < 5) {
+                if ($this->getHtmlVersion() < 5) {
                     if (stripos($data, '<meta http-equiv=') === false) {
                         $metaTag = '<meta http-equiv="Content-Type" content="text/html; charset=' . $this->htmlCharset . '">';
                     }
@@ -268,6 +318,9 @@ class htmlDocument extends DOMDocument {
                 }
                 if ($metaTag != '') {
                     $data = substr($data, 0, $head_pos + 6) . $metaTag . substr($data, $head_pos + 7, strlen($data) - $head_pos - 7);
+                    $this->charsetTagExists = false;
+                } else {
+                    $this->charsetTagExists = true;
                 }
             }
         } else {
@@ -335,7 +388,6 @@ class htmlDocument extends DOMDocument {
 	 */
 	public function analyze($reportMode = false) {
         $this->doctypeTagExists = false;
-        $this->charsetTagExists = false;
 	    $report = "<pre><strong>Document analysis</strong>\n";
 		if (!$this->isNew()) {
 		    $report .= "\nHTML file has been loaded: " . $this->srcFileName . "\n";
@@ -346,19 +398,18 @@ class htmlDocument extends DOMDocument {
 				$this->doctypeTagExists = true;
                 $report .= "found: " . htmlspecialchars($this->docType) . "\n";
 			} else {
-                $report .= "was not found.\nSupposed: " . htmlspecialchars($this->docType) . "\n";
+                $report .= "was not found.\nSet by default to: " . htmlspecialchars($this->docType) . "\n";
             }
-            $this->htmlVersion = $this->docType->getHtmlVersion();
-            $report .= "HTML version according to doctype: " . $this->htmlVersion . "\n";
+            $this->setHtmlVersion($this->docType->getHtmlVersion());
+            $report .= "HTML version according to doctype: " . $this->getHtmlVersion() . "\n";
 			// Encoding info
-            $report .= "\nEncoding: ";
-			if ($this->encoding) {
-				$this->charsetTagExists = true;
-                $report .= $this->encoding . ". Meta charset tag found.";
+            $report .= "\nDocument encoding: initially set to " . $this->htmlCharset . "\n";
+			if ($this->charsetTagExists) {
+                $report .= "Meta charset tag is found: ";
 			} else {
-                $report .= "meta charset tag not found.";
+                $report .= "Meta charset tag was not found.\nAuto-generated: ";
             }
-            $report .= "\nInitially set: " . $this->htmlCharset . "\n";
+			$report .= htmlspecialchars($this->getCharsetTag($this->locateCharsetTag()));
 		} else {
             $report .= "\nA new HTML file is handled.\n";
         }
@@ -368,5 +419,42 @@ class htmlDocument extends DOMDocument {
 		    echo $report;
         }
 	}
-	
+
+    /**
+     * Analyze loaded HTML file.
+     *
+     * @param boolean $reportMode       True, if you'd like to display the analysis in a browser.
+     */
+	public function analyze2($reportMode = false) {
+	    $this->analysis = new htmlAnalysis();
+	    $A = array();
+        if (!$this->isNew()) {
+            // General info
+            $A['isNew'] = false;
+            $A['filename'] = $this->srcFileName;
+            $A['filesize'] = filesize($this->srcFileName);
+            // Doctype
+            $A['doctypeExists'] = $this->docType->isExists();
+            $A['doctype'] = htmlspecialchars($this->docType);
+            $this->setHtmlVersion($this->docType->getHtmlVersion());
+            $A['htmlVersion'] = $this->getHtmlVersion();
+            // Document encoding
+            $A['initialCharset'] = $this->htmlCharset;
+            $A['charsetTagExists'] = $this->charsetTagExists;
+            $A['charsetTag'] = htmlspecialchars($this->getCharsetTag($this->locateCharsetTag()));
+            $A['encoding'] = $this->encoding;
+            // Document title
+            $A['title'] = $this->getTagContent('title');
+            // CSS styles
+            $A['stylesEmbedded'] = $this->getTagContent('style');
+            $A['stylesExternal'] = $this->getExtCSS();
+        } else {
+            $A['isNew'] = true;
+        }
+        $this->analysisDone = true;
+        if ($reportMode) {
+            $this->analysis->display();
+        }
+	}
+
 }
