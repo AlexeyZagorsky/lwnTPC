@@ -29,118 +29,113 @@ dd { float: left; width: 69%; margin: 0; padding: 4px 0 2px 0; font-family: mono
 <h2>General info</h2>
 <dl>
 	<dt>HTML file has been loaded</dt>
-	<dd>Contents.htm</dd>
+	<dd>{HTML_FILE_NAME}</dd>
 	<dt>File size</dt>
-	<dd>9652 bytes</dd>
+	<dd>{HTML_FILE_SIZE} bytes</dd>
 </dl>
-<div class="ha-recommendation">Recommendations:</div>
-<ol>
-	<li><span class="ha-value">htm</span> - old style of HTML file extension detected. Change it to <span class="ha-value">html</span></li>
-</ol>
+{RCM_GEN_INFO}
 
 <h2>Document header</h2>
 
 <h3>Doctype</h3>
 <dl>
 	<dt>Doctype tag in source file</dt>
-	<dd>not found <span class="ha-hidden">/ &lt;!DOCTYPE html&gt;</span></dd>
+	<dd>{DOCTYPE_SRC}</dd>
 	<dt>Auto-generated</dt>
-	<dd>&lt;!DOCTYPE html PUBLIC &quot;-//W3C//DTD HTML 4.0 Transitional//EN&quot; &quot;http://www.w3.org/TR/REC-html40/loose.dtd&quot;&gt;</dd>
+	<dd>{DOCTYPE_GENERATED}</dd>
 	<dt>HTML version according to doctype</dt>
-	<dd>4 <span class="ha-hidden">/ 5</span></dd>
+	<dd>{DOCTYPE_HTML_VERSION}</dd>
 </dl>
-<div class="ha-recommendation">Recommendations:</div>
-<ol>
-	<li>There is no doctype in the document. Set it to <span class="ha-value">&lt;!DOCTYPE html&gt;</span>
-	<li>HTML 4 is supposed.</li>
-</ol>
+{RCM_DOCTYPE}
 
 <h3>Document encoding</h3>
 <dl>
 	<dt>Initially set to</dt>
-	<dd>Windows-1251</dd>
+	<dd>{ENCODING_INITIAL}</dd>
 	<dt>Meta charset tag in source file</dt>
-	<dd>not found <span class="ha-hidden">/ &lt;meta charset="UTF-8"&gt;</span></dd>
+	<dd>{ENCODING_TAG}</dd>
 	<dt>Auto-generated</dt>
-	<dd>&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=Windows-1251&quot;&gt;</dd>
+	<dd>{ENCODING_TAG_GENERATED}</dd>
 	<dt>Encoding according to meta tag</dt>
-	<dd>Windows-1251</dd>
+	<dd>{ENCODING_CHARSET}</dd>
 </dl>
-<div class="ha-recommendation">Recommendations:</div>
-<ol>
-	<li><span class="ha-value">Windows-1251</span> is an obsoleted charset. Convert document encoding to <span class="ha-value">UTF-8</span>.</li>
-	<li>There is no &lt;meta charset&gt; tag in the document. Set it to HTML 5 format: <span class="ha-value">&lt;meta charset="UTF-8"&gt;</span></li>
-</ol>
+{RCM_ENCODING}
 
 <h3>Document title</h3>
 <dl>
 	<dt>Title tag in source file</dt>
-	<dd>not found <span class="ha-hidden">/ found</span></dd>
-	<dt>Tag value</dt>
-	<dd>Высокоскоростные технологии ЛВС</dd>
+	<dd>{TITLE_SRC}</dd>
 </dl>
+{RCM_TITLE}
 
 <h3>CSS styles</h3>
 <dl>
-	<dt>Embedded styles</dt>
-	<dd>not found</dd>
+	<dt>Internal styles</dt>
+	<dd>{CSS_INT}</dd>
 	<dt>External style sheets</dt>
-	<dd>not found</dd>
+	<dd>{CSS_EXT}</dd>
 </dl>
+{RCM_CSS}
 
 <h3>JavaScript</h3>
 <dl>
-	<dt>Embedded scripts</dt>
-	<dd>not found</dd>
+	<dt>Internal scripts</dt>
+	<dd>{JS_INT}</dd>
 	<dt>External scripts</dt>
-	<dd>not found</dd>
+	<dd>{JS_EXT}</dd>
 </dl>
+{RCM_SCRIPTS}
 
 <h2>Document structure</h2>
 
 <h3>Headers</h3>
 <dl>
 	<dt>Headers hierarchy</dt>
-	<dd>not found / broken / ok</dd>
+	<dd>{DOC_HEADERS}</dd>
 </dl>
+{RCM_HEADERS}
 
 <h3>Links</h3>
 <dl>
 	<dt>Links to htm pages</dt>
-	<dd>found / not found</dd>
+	<dd>{DOC_LINKS}</dd>
 </dl>
+{RCM_LINKS}
 
 <h3>Images</h3>
 <dl>
 	<dt>Images in file</dt>
-	<dd>not found / found</dd>
+	<dd>{DOC_IMG_SRC}</dd>
 	<dt>alt attributes</dt>
-	<dd>not found / ok</dd>
+	<dd>{DOC_IMG_ALT}</dd>
 	<dt>Figures</dt>
-	<dd>not found / found</dd>
+	<dd>{DOC_FIG}</dd>
 	<dt>Figures transformation</dt>
-	<dd>recommended / not required</dd>
+	<dd>{DOC_FIG_TRANSFORM}</dd>
 </dl>
+{RCM_IMAGES}
 
 <h3>Tags</h3>
 <dl>
 	<dt>&lt;b&gt; and &lt;i&gt;</dt>
-	<dd>not found / found</dd>
+	<dd>{DOC_TAG_B_I}</dd>
 	<dt>&lt;font&gt;</dt>
-	<dd>not found / found</dd>
+	<dd>{DOC_TAG_FONT}</dd>
 	<dt>&lt;center&gt;</dt>
-	<dd>not found / found</dd>
+	<dd>{DOC_TAG_CENTER}</dd>
 	<dt>Empty tags</dt>
-	<dd>not found / found</dd>
+	<dd>{DOC_TAG_EMPTY}</dd>
+	<dt>Inline styles in tags</dt>
+	<dd>{DOC_TAG_INLINE_STYLES}</dd>
 </dl>
+{RCM_TAGS}
 
 <h3>HTML 5 semantic markup</h3>
 <dl>
 	<dt>Semantic markup</dt>
-	<dd>not found</dd>
-	<dt></dt>
-	<dd></dd>
+	<dd>{DOC_SEM_MARKUP}</dd>
 </dl>
+{RCM_SEM_MARKUP}
 <div class="ha-clear"></div>
 
 </div>

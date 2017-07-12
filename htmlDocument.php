@@ -14,6 +14,7 @@
  */
 
 require_once('htmlDoctype.php');
+require_once('htmlAnalysis.php');
 
 class htmlDocument extends DOMDocument {
 
@@ -219,7 +220,7 @@ class htmlDocument extends DOMDocument {
 	public function getTagContent($tagName) {
 	    $content = '';
 	    $Tags = $this->getElementsByTagName($tagName);
-	    if ($Tags) {
+	    if ($Tags->length > 0) {
             $tag = $Tags->item(0);
             $content = $tag->nodeValue;
         }
@@ -229,7 +230,7 @@ class htmlDocument extends DOMDocument {
     /**
      * Return external CSS file name(s) linked to the HTML document.
      *
-     * @return array|string     CSS file name, if only one CSS is linked to the document;
+     * @return string|array     CSS file name, if only one CSS is linked to the document;
      *                          array of CSS file names, if there are several CSS links found;
      *                          empty string, if no external CSS links found.
      */
@@ -253,6 +254,70 @@ class htmlDocument extends DOMDocument {
             }
         }
         return $retValue;
+    }
+
+    /**
+     *  Return external script name(s) linked to the HTML document.
+     *
+     * @return string|array     Script file name, if it is linked to the document;
+     *                          array of script file names, if there are several scripts linked;
+     *                          empty string, if no external script links found.
+     */
+    public function getExtScripts() {
+        $scriptArray = array();
+        $k = 0;
+        $Scripts = $this->getElementsByTagName('script');
+        for ($i = 0; $i < $Scripts->length; $i++) {
+            $script = $Scripts->item($i);
+            if ($script->hasAttribute('src') ) {
+                $scriptArray[$k] = $script->getAttribute('src');
+                $k++;
+            }
+        }
+        $retValue = '';
+        if ($k > 0) {
+            if ($k == 1) {
+                $retValue = $scriptArray[0];
+            } else {
+                $retValue = $scriptArray;
+            }
+        }
+        return $retValue;
+    }
+
+    /**
+     * Check if there is a header structure in the HTML document (h1, h2, h3, etc)
+     *
+     *
+     */
+    protected function checkHtmlLinks() {
+        $Links = $this->getElementsByTagName('a');
+        $cnt = 0;
+        $cntHtm = 0;
+        for ($i = 0; $i < $Links->length; $i++) {
+            $link = $Links->item($i);
+            if ($link->hasAttribute('href')) {
+                $cnt++;
+                $attr = $link->getAttribute('href');
+                // cut off internal anchor data, i.e. #xxx at the end of a link
+                $p = strpos($attr, '#');
+                if ($p > 0) {
+                    $attr = substr($attr, 0, $p);
+                }
+                echo $attr . '<br>';
+                if (preg_match('/^(http:|mailto:)/i', $attr) === 0) {
+                    $p = strrpos($attr, '.');
+                    $ext = substr($attr, $p + 1, strlen($attr) - $p - 1);
+                    if ($ext == 'htm') {
+                        $cntHtm++;
+                    }
+                }
+            }
+        }
+        $Ret = array();
+        $Ret[0] = $cnt; // total number of links
+        $Ret[1] = $cntHtm; // links referring to .htm files
+        return $Ret;
     }
 
     /**
@@ -426,7 +491,7 @@ class htmlDocument extends DOMDocument {
      * @param boolean $reportMode       True, if you'd like to display the analysis in a browser.
      */
 	public function analyze2($reportMode = false) {
-	    $this->analysis = new htmlAnalysis();
+	    // Collect all necessary data
 	    $A = array();
         if (!$this->isNew()) {
             // General info
@@ -446,15 +511,27 @@ class htmlDocument extends DOMDocument {
             // Document title
             $A['title'] = $this->getTagContent('title');
             // CSS styles
-            $A['stylesEmbedded'] = $this->getTagContent('style');
-            $A['stylesExternal'] = $this->getExtCSS();
+            $A['stylesInt'] = $this->getTagContent('style');
+            $A['stylesExt'] = $this->getExtCSS();
+            // Scripts
+            $A['scriptsInt'] = $this->getTagContent('script');
+            $A['scriptsExt'] = $this->getExtScripts();
+            // Headers
+            $A['htmlHeaders'] = 'not supported yet';
+            // Links
+            $A['htmlLinks'] = $this->checkHtmlLinks();
         } else {
             $A['isNew'] = true;
         }
-        $this->analysisDone = true;
+        // Pass the collected data to the analyzer
+        $this->analysis = new htmlAnalysis($A);
+        /*echo '<pre>';
+        print_r($A);
+        echo '</pre>';*/
         if ($reportMode) {
             $this->analysis->display();
         }
+        $this->analysisDone = true;
 	}
 
 }

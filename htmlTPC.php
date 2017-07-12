@@ -38,7 +38,7 @@ class htmlTPC {
 	}
 	
 	public function analyze($mode = false) {
-		$this->htmlDoc->analyze($mode);
+		$this->htmlDoc->analyze2($mode);
 	}
 	
 	public function convert($destCharset) {
