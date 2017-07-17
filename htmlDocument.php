@@ -286,7 +286,7 @@ class htmlDocument extends DOMDocument {
     }
 
     /**
-     * Check if there is a header structure in the HTML document (h1, h2, h3, etc)
+     * Check HTML links.
      *
      *
      */
@@ -304,7 +304,6 @@ class htmlDocument extends DOMDocument {
                 if ($p > 0) {
                     $attr = substr($attr, 0, $p);
                 }
-                echo $attr . '<br>';
                 if (preg_match('/^(http:|mailto:)/i', $attr) === 0) {
                     $p = strrpos($attr, '.');
                     $ext = substr($attr, $p + 1, strlen($attr) - $p - 1);
@@ -525,9 +524,6 @@ class htmlDocument extends DOMDocument {
         }
         // Pass the collected data to the analyzer
         $this->analysis = new htmlAnalysis($A);
-        /*echo '<pre>';
-        print_r($A);
-        echo '</pre>';*/
         if ($reportMode) {
             $this->analysis->display();
         }
